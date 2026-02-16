@@ -1,0 +1,19 @@
+{
+  "name": "test-assignment-nuxt4",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "normalize.css": "^8.0.1",
+    "nuxt": "^4.3.1",
+    "sass": "^1.97.3",
+    "vue": "^3.5.28",
+    "vue-router": "^4.6.4"
+  }
+}

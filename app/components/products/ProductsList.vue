@@ -8,98 +8,130 @@
       />
     </div>
 
-    <div v-if="loading" class="products__loading">Загрузка...</div>
+    <div v-if="isLoading" class="products__loading">Загрузка...</div>
 
-    <div v-else-if="error" class="products__error">
+    <div v-else-if="isError" class="products__error">
       <p class="products__error-text">Произошла ошибка, попробуйте позже</p>
       <Button
         :title="'Повторить'"
-        @click="retryLoad"
-        :disabled="retryLoading"
+        @click="handleRetry"
+        :disabled="isRetryLoading"
       />
     </div>
 
-    <Button v-else-if="hasNextPage" :title="'Показать ещё'" @click="loadMore" />
+    <Button 
+      v-else-if="hasMoreProducts" 
+      :title="'Показать ещё'" 
+      @click="loadMoreProducts"
+      :disabled="isLoading"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed, watch } from "vue";
 import ProductCard from "./ProductCard.vue";
 import Button from "~/components/Button.vue";
 import type { ProductsResponse, Product } from "~/types/products";
 
+const PRODUCTS_LIMIT = 16;
+
 const currentPage = ref(1);
 const allProducts = ref<Product[]>([]);
-const hasNextPage = ref(false);
-const loading = ref(false);
-const error = ref(false);
-const retryLoading = ref(false);
+const isLoading = ref(false);
+const isError = ref(false);
+const isRetryLoading = ref(false);
+const totalProducts = ref(0);
 
-const { data: initialData, pending: initialPending } =
+const hasMoreProducts = computed(() => {
+  return allProducts.value.length < totalProducts.value;
+});
+
+const { data: initialData, pending: initialPending, error: initialError } = 
   await useFetch<ProductsResponse>("/api/products", {
     query: {
       page: 1,
-      limit: 16,
+      limit: PRODUCTS_LIMIT,
     },
   });
 
+// Инициализация данных
 if (initialData.value) {
-  allProducts.value = initialData.value.products;
-  hasNextPage.value =
-    initialData.value.pagination?.hasNextPage ||
-    initialData.value.products.length === 16;
+  updateProductsState(initialData.value);
 }
 
-const loadMore = async () => {
-  if (loading.value) return;
+if (initialError.value) {
+  isError.value = true;
+}
 
-  loading.value = true;
-  error.value = false;
+function updateProductsState(response: ProductsResponse) {
+  allProducts.value = response.products;
+  console.log(response)
+  totalProducts.value = response?.total || response.products.length;
+  currentPage.value = response?.currentPage || 1;
+}
+
+async function fetchProducts(page: number) {
+  try {
+    const { data, error } = await useFetch<ProductsResponse>("/api/products", {
+      query: {
+        page,
+        limit: PRODUCTS_LIMIT,
+      },
+    });
+
+    if (error.value) {
+      throw new Error(error.value.message);
+    }
+
+    return data.value;
+  } catch (err) {
+    console.error("Ошибка загрузки товаров:", err);
+    throw err;
+  }
+}
+
+async function loadMoreProducts() {
+  if (isLoading.value || !hasMoreProducts.value) return;
+
+  isLoading.value = true;
+  isError.value = false;
 
   try {
     const nextPage = currentPage.value + 1;
-    const { data, error: fetchError } = await useFetch<ProductsResponse>(
-      "/api/products",
-      {
-        query: {
-          page: nextPage,
-          limit: 16,
-        },
-      },
-    );
-
-    if (fetchError.value) {
-      throw new Error("Ошибка загрузки");
-    }
-
-    if (data.value) {
-      allProducts.value = [...allProducts.value, ...data.value.products];
+    const response = await fetchProducts(nextPage);
+    
+    if (response) {
+      allProducts.value = [...allProducts.value, ...response.products];
       currentPage.value = nextPage;
-      hasNextPage.value =
-        data.value.pagination?.hasNextPage || data.value.products.length === 16;
+      totalProducts.value = response?.total || totalProducts.value;
     }
   } catch (err) {
-    error.value = true;
-    console.error("Ошибка загрузки товаров:", err);
+    isError.value = true;
   } finally {
-    loading.value = false;
+    isLoading.value = false;
   }
-};
+}
 
-// Повторная загрузка при ошибке
-const retryLoad = async () => {
-  if (retryLoading.value) return;
+async function handleRetry() {
+  if (isRetryLoading.value) return;
 
-  retryLoading.value = true;
-  error.value = false;
+  isRetryLoading.value = true;
+  isError.value = false;
 
   try {
-    await loadMore();
+    await loadMoreProducts();
   } finally {
-    retryLoading.value = false;
+    isRetryLoading.value = false;
   }
-};
+}
+
+// Сброс ошибки при успешной загрузке
+watch(allProducts, () => {
+  if (allProducts.value.length > 0) {
+    isError.value = false;
+  }
+});
 </script>
 
 <style scoped lang="scss">

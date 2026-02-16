@@ -1,7 +1,7 @@
 <template>
   <div class="product-card">
     <div class="product-card__inner">
-      <button class="product-card__favorite" aria-label="Добавить в избранное">
+      <button class="product-card__favorite">
         <Favorites></Favorites>
       </button>
       <NuxtLink :to="'#'" class="product-card__link">

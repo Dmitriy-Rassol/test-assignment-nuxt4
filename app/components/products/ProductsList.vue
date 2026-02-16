@@ -55,7 +55,6 @@ const { data: initialData, pending: initialPending, error: initialError } =
     },
   });
 
-// Инициализация данных
 if (initialData.value) {
   updateProductsState(initialData.value);
 }
@@ -126,7 +125,6 @@ async function handleRetry() {
   }
 }
 
-// Сброс ошибки при успешной загрузке
 watch(allProducts, () => {
   if (allProducts.value.length > 0) {
     isError.value = false;

@@ -1,12 +1,11 @@
 <template>
   <header class="header">
     <div class="header__container container">
-      
-    <NuxtLink class="header__logo logo" to="/">
+      <NuxtLink class="header__logo logo" to="/">
         <span></span>
       </NuxtLink>
 
-      <NavMenu :data="headerData"/>
+      <NavMenu :data="headerData" />
       <button
         class="header__burger burger"
         type="button"
@@ -16,7 +15,6 @@
         <span class="burger__line"></span>
         <span class="burger__line"></span>
       </button>
-
     </div>
   </header>
 </template>
@@ -40,6 +38,12 @@ import NavMenu from "../header/NavMenu.vue";
     width: 42px;
     height: 42px;
     background-color: var(--logo-bg);
+   
+    @media (max-width: 600px) {
+      width: 28px;
+      height: 28px;
+    }
+
 
     &:hover {
       opacity: 1;
@@ -49,7 +53,7 @@ import NavMenu from "../header/NavMenu.vue";
   &__nav {
     background-color: var(--nav-bg);
 
-    @media (max-width: 1200px) {
+    @media (max-width: 900px) {
       display: none;
     }
   }
@@ -65,7 +69,7 @@ import NavMenu from "../header/NavMenu.vue";
     background: var(--nav-bg);
     visibility: hidden;
 
-    @media (max-width: 1200px) {
+    @media (max-width: 900px) {
       visibility: visible;
     }
   }

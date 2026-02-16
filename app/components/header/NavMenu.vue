@@ -22,7 +22,7 @@ defineProps(['data'])
   &__nav {
     background-color: var(--nav-bg);
 
-    @media (max-width: 1200px) {
+    @media (max-width: 900px) {
       display: none;
     }
   }

@@ -5,5 +5,10 @@ export default defineNuxtConfig({
   ssr: true,
   css: [
     '~/assets/styles/main.scss'
-  ]
+  ],
+  runtimeConfig: {
+    public: {
+      apiBase: 'https://test-task-api.tapir.ws' 
+    }
+  }
 })

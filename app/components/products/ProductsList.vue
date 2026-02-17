@@ -179,9 +179,8 @@ watch(allProducts, () => {
     align-items: center;
     gap: 30px;
     &-text {
-      padding: 10px 24px;
       font-size: 14px;
-      font-size: 16px;
+      align-items: center;
       color: var(--primary);
     }
   }

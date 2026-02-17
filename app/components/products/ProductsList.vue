@@ -1,27 +1,29 @@
 <template>
   <div class="products-section">
     <div class="product__list">
-      <ProductCard
+      <ProductItem
         v-for="product in allProducts"
         :key="product.id"
         :product="product"
       />
     </div>
 
-    <div v-if="isLoading" class="products__loading">Загрузка...</div>
+    <div v-if="isLoading || initialPending" class="products__loading">
+      Загрузка...
+    </div>
 
-    <div v-else-if="isError" class="products__error">
+    <div v-else-if="isError || initialError" class="products__error">
       <p class="products__error-text">Произошла ошибка, попробуйте позже</p>
       <Button
         :title="'Повторить'"
-        @click="handleRetry"
-        :disabled="isRetryLoading"
+        @click="handleInitialRetry"
+        :disabled="isRetryLoading || initialPending"
       />
     </div>
 
-    <Button 
-      v-else-if="hasMoreProducts" 
-      :title="'Показать ещё'" 
+    <Button
+      v-else-if="hasMoreProducts"
+      :title="'Показать ещё'"
       @click="loadMoreProducts"
       :disabled="isLoading"
     />
@@ -30,11 +32,10 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import ProductCard from "./ProductCard.vue";
+import ProductItem from "./ProductItem.vue";
 import Button from "~/components/Button.vue";
 import type { ProductsResponse, Product } from "~/types/products";
 
-const PRODUCTS_LIMIT = 16;
 
 const currentPage = ref(1);
 const allProducts = ref<Product[]>([]);
@@ -42,30 +43,30 @@ const isLoading = ref(false);
 const isError = ref(false);
 const isRetryLoading = ref(false);
 const totalProducts = ref(0);
+const productsLimit = ref(16);
 
 const hasMoreProducts = computed(() => {
   return allProducts.value.length < totalProducts.value;
 });
 
-const { data: initialData, pending: initialPending, error: initialError } = 
-  await useFetch<ProductsResponse>("/api/products", {
-    query: {
-      page: 1,
-      limit: PRODUCTS_LIMIT,
-    },
-  });
+const {
+  data: initialData,
+  pending: initialPending,
+  error: initialError,
+  refresh,
+} = await useFetch<ProductsResponse>("/api/products", {
+  query: {
+    page: 1,
+    limit: productsLimit.value,
+  },
+});
 
 if (initialData.value) {
   updateProductsState(initialData.value);
 }
 
-if (initialError.value) {
-  isError.value = true;
-}
-
 function updateProductsState(response: ProductsResponse) {
   allProducts.value = response.products;
-  console.log(response)
   totalProducts.value = response?.total || response.products.length;
   currentPage.value = response?.currentPage || 1;
 }
@@ -75,7 +76,7 @@ async function fetchProducts(page: number) {
     const { data, error } = await useFetch<ProductsResponse>("/api/products", {
       query: {
         page,
-        limit: PRODUCTS_LIMIT,
+        limit: productsLimit.value,
       },
     });
 
@@ -99,7 +100,7 @@ async function loadMoreProducts() {
   try {
     const nextPage = currentPage.value + 1;
     const response = await fetchProducts(nextPage);
-    
+
     if (response) {
       allProducts.value = [...allProducts.value, ...response.products];
       currentPage.value = nextPage;
@@ -112,14 +113,19 @@ async function loadMoreProducts() {
   }
 }
 
-async function handleRetry() {
-  if (isRetryLoading.value) return;
+async function handleInitialRetry() {
+  if (isRetryLoading.value || initialPending.value) return;
 
   isRetryLoading.value = true;
-  isError.value = false;
 
   try {
-    await loadMoreProducts();
+    await refresh();
+
+    if (initialData.value) {
+      updateProductsState(initialData.value);
+    }
+  } catch (err) {
+    console.error("Ошибка при повторной загрузке:", err);
   } finally {
     isRetryLoading.value = false;
   }
@@ -130,6 +136,7 @@ watch(allProducts, () => {
     isError.value = false;
   }
 });
+
 </script>
 
 <style scoped lang="scss">
@@ -147,6 +154,15 @@ watch(allProducts, () => {
     gap: 40px;
     margin: 110px 0;
     width: 100%;
+
+    @media (max-width: 1000px) {
+      margin: 40px 0;
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    @media (max-width: 600px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 }
 
@@ -162,7 +178,7 @@ watch(allProducts, () => {
     flex-direction: column;
     align-items: center;
     gap: 30px;
-    &-text { 
+    &-text {
       padding: 10px 24px;
       font-size: 14px;
       font-size: 16px;

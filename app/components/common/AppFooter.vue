@@ -16,7 +16,7 @@ import { footerData } from "~/constant/footerData";
   background-color: var(--footer-bg);
   padding: 100px 0;
 
-  @media (max-width: 700px) {
+  @media (max-width: 800px) {
     padding: 60px 0;
   }
 }

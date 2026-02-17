@@ -1,29 +1,29 @@
 <template>
-  <div class="product-card">
-    <div class="product-card__inner">
-      <button class="product-card__favorite">
+  <div class="product-item">
+    <div class="product-item__inner">
+      <button class="product-item__favorite">
         <Favorites></Favorites>
       </button>
-      <NuxtLink :to="'#'" class="product-card__link">
-        <div class="product-card__image-wrapper">
+      <NuxtLink :to="'#'" class="product-item__link">
+        <div class="product-item__image-wrapper">
           <img
-            class="product-card__image"
+            class="product-item__image"
             :src="product.image"
             :alt="product.name"
             loading="lazy"
           />
         </div>
 
-        <div class="product-card__content">
-          <div class="product-card__prices">
-            <span class="product-card__price"
+        <div class="product-item__content">
+          <div class="product-item__prices">
+            <span class="product-item__price"
               >{{ formatPrice(product.price) }} ₽</span
             >
-            <span class="product-card__price-half"
+            <span class="product-item__price-half"
               >{{ formatPrice(halfPrice) }} ₽ x2</span
             >
           </div>
-          <p class="product-card__name">{{ product.name }}</p>
+          <p class="product-item__name">{{ product.name }}</p>
         </div>
       </NuxtLink>
     </div>
@@ -46,7 +46,7 @@ const formatPrice = (price: number) => {
 </script>
 
 <style scoped lang="scss">
-.product-card {
+.product-item{
   position: relative;
   &__inner {
     display: flex;
@@ -60,14 +60,32 @@ const formatPrice = (price: number) => {
     z-index: 2;
     cursor: pointer;
   }
-  &__image {
+    &__image-wrapper {
+    position: relative;
     width: 100%;
-    height: 180px;
-    object-fit: contain;
+    padding-bottom: 75%;
+    overflow: hidden;
+  }
+  
+  &__image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain; 
+    transition: transform 0.3s ease;
   }
 
   &__link {
+    display: flex;
+    flex-direction: column;
+    gap: 31px;
     transition: opacity ease-in .2s;
+
+     @media (max-width: 800px) {
+      gap: 15px;
+    }
     &:hover {
       opacity: 0.9;
     }
@@ -76,19 +94,32 @@ const formatPrice = (price: number) => {
   &__content {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 5px;
+
+     @media (max-width: 800px) {
+      gap: 3px;
+    }
   }
 
   &__prices {
     display: flex;
     gap: 10px;
-    align-items:center
+    align-items:center;
+    flex-wrap: nowrap;
+
+    @media (max-width: 800px) {
+      flex-direction: column;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
   }
 
   &__price {
     font-size: 24px;
     font-weight: 500;
     line-height: 1.4em;
+
+
   }
 
   &__price-half {

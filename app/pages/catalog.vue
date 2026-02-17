@@ -19,6 +19,10 @@ import ProductsList from "~/components/products/ProductsList.vue";
 .catalog {
   padding-bottom: 100px;
 
+   @media (max-width: 900px) {
+        padding-bottom: 40px;
+    }
+
   &__container {
     display: flex;
     flex-direction: column;

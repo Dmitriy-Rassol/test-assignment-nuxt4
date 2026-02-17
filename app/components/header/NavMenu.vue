@@ -13,8 +13,7 @@
 </template>
 
 <script setup lang="ts">
-defineProps(['data'])
-
+defineProps(["data"]);
 </script>
 
 <style scoped lang="scss">

@@ -66,7 +66,6 @@ import { footerData } from "~/constant/footerData";
   }
 }
 
-// Адаптивность
 @media (max-width: 768px) {
   .footer {
     &__container {
